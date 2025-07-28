@@ -1,13 +1,10 @@
-# -----------------------------
-# 🧠 Lung Cancer Predictor Page
-# -----------------------------
 import streamlit as st
 import numpy as np
 import joblib
 import requests
 from streamlit_extras.colored_header import colored_header
 
-# Optional GPIO for Raspberry Pi
+# Optional GPIO
 try:
     import RPi.GPIO as GPIO
     IS_PI = True
@@ -18,10 +15,9 @@ except ImportError:
 rf_model = joblib.load("rf_model.pkl")
 xgb_model = joblib.load("xgb_model.pkl")
 
-# Streamlit page config
+# Page setup
 st.set_page_config(page_title="Lung Cancer Predictor", page_icon="🫁", layout="wide")
 
-# Banner
 colored_header(
     label="🫁 Lung Cancer Risk Predictor",
     description="AI-powered Smart Screening Tool with Raspberry Pi Integration",
@@ -32,8 +28,7 @@ colored_header(
 st.sidebar.markdown("### ⚙️ Choose ML Model")
 model_choice = st.sidebar.selectbox("Prediction Model:", ["Random Forest", "XGBoost"])
 
-# Centered form container
-form_container = st.columns([0.5, 5, 0.5])[1]
+form_container = st.columns([0.5, 5, 0.5])[1]  # Narrow and centered form
 
 with st.form("prediction_form"):
     st.markdown("""
@@ -69,10 +64,10 @@ with st.form("prediction_form"):
 
     submitted = st.form_submit_button("🔍 Predict Risk")
 
-# Encode Yes/No
+# Encode helper
 encode = lambda x: 1 if x == "Yes" else 0
 
-# Prediction logic
+# 🔍 Predict
 if submitted and patient_name:
     features = [
         encode(yellow_fingers), encode(anxiety), encode(peer_pressure),
@@ -91,30 +86,43 @@ if submitted and patient_name:
 
     if pred == 1:
         st.error(f"🚨 **High Risk** of Lung Cancer\n\n🧪 Confidence: `{prob*100:.2f}%`")
-        st.image("https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExdmh4bHR3bzBpZTIyZThwNW1lb2h0dmw3ZG0zN3l1bTJzbjBzZTd1ZCZlcD12MV8y/giphy.gif", width=280)
-
         if IS_PI:
             GPIO.setmode(GPIO.BCM)
             GPIO.setup(18, GPIO.OUT)
             GPIO.output(18, GPIO.HIGH)
+            st.image("https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExdmh4bHR3bzBpZTIyZThwNW1lb2h0dmw3ZG0zN3l1bTJzbjBzZTd1ZCZlcD12MV8y/giphy.gif", width=280)
 
-        # Hospital suggestions
-        with st.expander("🏥 Find Nearby Cancer Hospitals"):
-            city_input = st.text_input("📍 Enter your city or PIN code", value="Jaipur")
+        # 📍 Suggest hospitals nearby
+
+        try:
+            # Auto-detect user location via IP
+            response = requests.get("https://ipinfo.io", timeout=5)
+            location_data = response.json()
+            city = location_data.get("city", "")
+            region = location_data.get("region", "")
+
+            # Create Google Maps search URL
+            map_url = f"https://www.google.com/maps/search/cancer+hospitals+near+{city}+{region}"
+
+            st.markdown("### 🏥 Nearby Cancer Care")
+            st.markdown(f"🔎 [Find cancer hospitals near **{city}, {region}**]({map_url})", unsafe_allow_html=True)
+            st.caption("ℹ️ Based on your current location via IP address")
+
+        except Exception as e:
+            st.warning("📡 Unable to detect location. Please enter it manually below.")
+            city_input = st.text_input("📍 Enter your city or PIN code for hospital suggestions")
             if city_input:
                 safe_city = city_input.replace(" ", "+")
-                map_url = f"https://www.google.com/maps/search/cancer+hospitals+near+{safe_city}"
-                st.markdown(f"🔗 [Hospitals near **{city_input}**]({map_url})", unsafe_allow_html=True)
-                st.caption("ℹ️ Powered by Google Maps. Location based on your input.")
+                manual_url = f"https://www.google.com/maps/search/cancer+hospitals+near+{safe_city}"
+                st.markdown(f"🔎 [Find cancer hospitals near **{city_input}**]({manual_url})", unsafe_allow_html=True)
 
     else:
         st.success(f"✅ **Low Risk** of Lung Cancer\n\n🧪 Confidence: `{prob*100:.2f}%`")
-        st.image("https://media.giphy.com/media/3ohzdYJK1wAdPWVk88/giphy.gif", width=280)
-
         if IS_PI:
             GPIO.setmode(GPIO.BCM)
             GPIO.setup(23, GPIO.OUT)
             GPIO.output(23, GPIO.HIGH)
+            st.image("https://media.giphy.com/media/3ohzdYJK1wAdPWVk88/giphy.gif", width=280)
 
     st.caption(f"📌 Model Used: **{model_choice}**")
 
