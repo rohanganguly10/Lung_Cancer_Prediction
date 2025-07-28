@@ -105,7 +105,7 @@ if submitted and patient_name:
             map_url = f"https://www.google.com/maps/search/cancer+hospitals+near+{city}+{region}"
 
             st.markdown("### 🏥 Nearby Cancer Care")
-            st.markdown(f"🔎 [Find cancer hospitals near **{city}, {region}**]({map_url})", unsafe_allow_html=True)
+            st.markdown(f"🔎 [Find cancer hospitals nearby: ]({map_url})", unsafe_allow_html=True)
             st.caption("ℹ️ Based on your current location via IP address")
 
         except Exception as e:
