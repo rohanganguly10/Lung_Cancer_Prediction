@@ -2,3 +2,7 @@ pandas
 numpy
 matplotlib
 seaborn
+streamlit
+scikit-learn
+xgboost
+joblib
