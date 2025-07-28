@@ -6,3 +6,5 @@ streamlit
 scikit-learn
 xgboost
 joblib
+plotly
+streamlit-extras
