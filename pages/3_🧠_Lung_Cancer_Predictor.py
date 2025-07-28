@@ -93,16 +93,10 @@ if submitted and patient_name:
             st.image("https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExdmh4bHR3bzBpZTIyZThwNW1lb2h0dmw3ZG0zN3l1bTJzbjBzZTd1ZCZlcD12MV8y/giphy.gif", width=280)
 
         # 📍 Suggest hospitals nearby
-        try:
-            location_data = requests.get("https://ipinfo.io").json()
-            city = location_data.get("city", "")
-            region = location_data.get("region", "")
-            map_url = f"https://www.google.com/maps/search/cancer+hospitals+near+{city}+{region}"
-            st.markdown("### 🏥 Nearby Cancer Care")
-            st.markdown(f"🔎 [Find cancer hospitals near **{city}, {region}**]({map_url})", unsafe_allow_html=True)
-            st.caption("ℹ️ Based on your current location via IP.")
-        except:
-            st.warning("📡 Unable to fetch location. Please check internet connection.")
+        city_input = st.text_input("📍 Enter your city or PIN code for hospital suggestions", "Jaipur")
+        if city_input:
+            map_url = f"https://www.google.com/maps/search/cancer+hospitals+near+{city_input}"
+            st.markdown(f"🔎 [Find cancer hospitals near **{city_input}**]({map_url})", unsafe_allow_html=True)
 
     else:
         st.success(f"✅ **Low Risk** of Lung Cancer\n\n🧪 Confidence: `{prob*100:.2f}%`")
