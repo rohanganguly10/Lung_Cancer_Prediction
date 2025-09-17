@@ -8,3 +8,6 @@ xgboost
 joblib
 plotly
 streamlit-extras
+fastapi
+uvicorn
+jinja2

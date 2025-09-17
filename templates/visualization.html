@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lung Cancer Data Visualization</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    h1 { text-align: center; color: #008080; }
+    .chart-container { width: 60%; margin: 20px auto; }
+    select { display: block; margin: 20px auto; }
+  </style>
+</head>
+<body>
+  <h1>📊 Lung Cancer Dataset Visualization</h1>
+
+  <div class="chart-container">
+    <canvas id="featureChart"></canvas>
+  </div>
+
+  <label for="featureSelect">Select Feature:</label>
+  <select id="featureSelect">
+    <option value="SMOKING">SMOKING</option>
+    <option value="YELLOW_FINGERS">YELLOW_FINGERS</option>
+    <option value="ANXIETY">ANXIETY</option>
+    <option value="PEER_PRESSURE">PEER_PRESSURE</option>
+    <option value="CHRONIC">CHRONIC</option>
+    <option value="FATIGUE">FATIGUE</option>
+    <option value="ALLERGY">ALLERGY</option>
+    <option value="WHEEZING">WHEEZING</option>
+    <option value="ALCOHOL">ALCOHOL</option>
+    <option value="COUGHING">COUGHING</option>
+    <option value="SWALLOWING">SWALLOWING</option>
+    <option value="CHEST_PAIN">CHEST_PAIN</option>
+  </select>
+
+  <script>
+    const ctx = document.getElementById('featureChart').getContext('2d');
+    let chart;
+
+    async function fetchFeatureData(feature) {
+      const res = await fetch(`/api/data/feature/${feature}`);
+      const data = await res.json();
+      return data;
+    }
+
+    function updateChart(data, feature) {
+      const labels = [...new Set(data.map(d => d[feature]))];
+      const yesCounts = labels.map(l => data.filter(d => d[feature]===l && d.LUNG_CANCER==="YES").reduce((a,b)=>a+b.count,0));
+      const noCounts = labels.map(l => data.filter(d => d[feature]===l && d.LUNG_CANCER==="NO").reduce((a,b)=>a+b.count,0));
+
+      const chartData = {
+        labels,
+        datasets: [
+          { label: 'LUNG CANCER: YES', data: yesCounts, backgroundColor: 'rgba(255,99,132,0.7)' },
+          { label: 'LUNG CANCER: NO', data: noCounts, backgroundColor: 'rgba(54,162,235,0.7)' }
+        ]
+      };
+
+      if(chart) {
+        chart.data = chartData;
+        chart.update();
+      } else {
+        chart = new Chart(ctx, { type:'bar', data: chartData, options:{responsive:true} });
+      }
+    }
+
+    document.getElementById('featureSelect').addEventListener('change', async (e)=>{
+      const feature = e.target.value;
+      const data = await fetchFeatureData(feature);
+      updateChart(data, feature);
+    });
+
+    fetchFeatureData('SMOKING').then(data=>updateChart(data,'SMOKING'));
+  </script>
+</body>
+</html>
